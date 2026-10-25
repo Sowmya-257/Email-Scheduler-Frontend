@@ -405,6 +405,42 @@ button {
   color: #c4cbd0;
 }
 
+.ethereal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.ethereal-tag:hover {
+  background: #bae6fd;
+}
+
+.cancel-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.cancel-btn:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
 .empty-state,
 .dashboard-message {
   padding: 40px 20px;

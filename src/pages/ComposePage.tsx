@@ -167,6 +167,11 @@ export default function ComposePage() {
     setScheduleDraft(formatLocalDateTime(date));
   }
 
+  function selectOffsetPreset(seconds: number) {
+    const date = new Date(Date.now() + seconds * 1000);
+    setScheduleDraft(formatLocalDateTime(date));
+  }
+
   async function handleSchedule(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -501,11 +506,14 @@ export default function ComposePage() {
               />
 
               <div className="schedule-presets">
+                <button type="button" onClick={() => selectOffsetPreset(30)}>
+                  ⚡ In 30 Seconds (Quick Demo)
+                </button>
+                <button type="button" onClick={() => selectOffsetPreset(120)}>
+                  ⏱ In 2 Minutes
+                </button>
                 <button type="button" onClick={() => selectPreset(9)}>
                   Tomorrow, 9:00 AM
-                </button>
-                <button type="button" onClick={() => selectPreset(10)}>
-                  Tomorrow, 10:00 AM
                 </button>
                 <button type="button" onClick={() => selectPreset(15)}>
                   Tomorrow, 3:00 PM

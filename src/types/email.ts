@@ -4,12 +4,17 @@ export interface Email {
   sender: string;
   subject: string;
   body: string;
-  status: string;
+  status: "scheduled" | "processing" | "sent" | "failed";
   scheduled_at: string;
   sent_at?: string | null;
-  attachments?: string | {
-  filename: string;
-  path: string;
-  mimetype: string;
-}[] | null;
+  created_at?: string;
+  ethereal_url?: string | null;
+  attachments?:
+    | string
+    | {
+        filename: string;
+        path?: string;
+        mimetype: string;
+      }[]
+    | null;
 }

@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Paperclip,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 import type { Email } from "../types/email";
 
@@ -15,7 +16,7 @@ const API_URL =
 
 interface EmailAttachment {
   filename: string;
-  path: string;
+  path?: string;
   mimetype: string;
 }
 
@@ -147,6 +148,21 @@ export default function EmailDetailsPage() {
                 ).toLocaleString()}
               </span>
             </p>
+            {isSent && email.ethereal_url && (
+              <p>
+                <strong>Ethereal Preview</strong>
+                <span>
+                  <a
+                    href={email.ethereal_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#2563eb", textDecoration: "underline", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                  >
+                    Open in Ethereal webmail <ExternalLink size={12} />
+                  </a>
+                </span>
+              </p>
+            )}
           </div>
         </div>
 
@@ -170,26 +186,26 @@ export default function EmailDetailsPage() {
             <div className="email-attachments-list">
               {attachments.map((file, index) => (
                 <a
-                className="email-attachment-item"
-                href={`${API_URL}/${email.id}/attachments/${index}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                key={`${file.filename}-${index}`}
+                  className="email-attachment-item"
+                  href={`${API_URL}/${email.id}/attachments/${index}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={`${file.filename}-${index}`}
                 >
-                {file.mimetype?.startsWith("image/") ? (
+                  {file.mimetype?.startsWith("image/") ? (
                     <img
-                    className="attachment-thumbnail"
-                    src={`${API_URL}/${email.id}/attachments/${index}`}
-                    alt={file.filename}
+                      className="attachment-thumbnail"
+                      src={`${API_URL}/${email.id}/attachments/${index}`}
+                      alt={file.filename}
                     />
-                ) : (
+                  ) : (
                     <FileText size={24} />
-                )}
+                  )}
 
-                <div className="attachment-file-info">
+                  <div className="attachment-file-info">
                     <strong title={file.filename}>{file.filename}</strong>
                     <small>{file.mimetype}</small>
-                </div>
+                  </div>
                 </a>
               ))}
             </div>
@@ -199,4 +215,3 @@ export default function EmailDetailsPage() {
     </main>
   );
 }
-

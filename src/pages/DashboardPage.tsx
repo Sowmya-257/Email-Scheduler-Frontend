@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Get the currently authenticated Firebase user.
+  // Authenticate Firebase user session
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -43,41 +43,76 @@ export default function DashboardPage() {
     return unsubscribe;
   }, [navigate]);
 
-  // Load scheduled and sent emails.
-  const loadEmails = useCallback(async (tab: Tab) => {
-    setLoading(true);
-    setError("");
+  // Load scheduled and sent emails for the logged-in sender
+  const loadEmails = useCallback(
+    async (tab: Tab, showSpinner = true) => {
+      if (showSpinner) {
+        setLoading(true);
+      }
+      setError("");
 
-    try {
-      const [scheduled, sent] = await Promise.all([
-        emailService.getScheduled(),
-        emailService.getSent(),
-      ]);
+      try {
+        const [scheduled, sent] = await Promise.all([
+          emailService.getScheduled(accountEmail),
+          emailService.getSent(accountEmail),
+        ]);
 
-      setScheduledCount(scheduled.length);
-      setSentCount(sent.length);
+        setScheduledCount(scheduled.length);
+        setSentCount(sent.length);
 
-      setEmails(tab === "scheduled" ? scheduled : sent);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Unable to load emails."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        setEmails(tab === "scheduled" ? scheduled : sent);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Unable to load email records."
+        );
+      } finally {
+        if (showSpinner) {
+          setLoading(false);
+        }
+      }
+    },
+    [accountEmail]
+  );
 
+  // Initial load when user authentication is confirmed
   useEffect(() => {
     if (!authLoading && accountEmail) {
-      void loadEmails(activeTab);
+      void loadEmails(activeTab, true);
     }
   }, [authLoading, accountEmail, activeTab, loadEmails]);
 
+  // Live auto-polling every 6 seconds to update job status without manual refresh
+  useEffect(() => {
+    if (authLoading || !accountEmail) return;
+
+    const interval = setInterval(() => {
+      void loadEmails(activeTab, false);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [authLoading, accountEmail, activeTab, loadEmails]);
+
+  // Cancel and unschedule an email
+  async function handleCancelEmail(id: number) {
+    if (!window.confirm("Are you sure you want to cancel this scheduled email?")) {
+      return;
+    }
+
+    try {
+      await emailService.cancelEmail(id);
+      void loadEmails(activeTab, false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to cancel email.");
+    }
+  }
+
+  // Sign out user and redirect to login
   async function handleLogout() {
     await signOut(auth);
     navigate("/", { replace: true });
   }
 
+  // Filter emails by search keyword
   const filteredEmails = emails.filter((email) =>
     `${email.recipient} ${email.subject} ${email.body}`
       .toLowerCase()
@@ -87,7 +122,7 @@ export default function DashboardPage() {
   if (authLoading) {
     return (
       <main className="dashboard">
-        <p className="dashboard-message">Checking your account...</p>
+        <p className="dashboard-message">Verifying authentication...</p>
       </main>
     );
   }
@@ -118,20 +153,20 @@ export default function DashboardPage() {
           <div className="search-box">
             <Search size={16} />
             <input
-              placeholder="Search"
+              placeholder="Search emails..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
 
-          <button className="icon-button" title="Filter">
+          <button className="icon-button" title="Filter options">
             <Filter size={16} />
           </button>
 
           <button
             className="icon-button"
-            title="Refresh"
-            onClick={() => void loadEmails(activeTab)}
+            title="Refresh list"
+            onClick={() => void loadEmails(activeTab, true)}
           >
             <RefreshCw size={15} />
           </button>
@@ -142,7 +177,7 @@ export default function DashboardPage() {
         ) : error ? (
           <div className="dashboard-message">
             <p>{error}</p>
-            <button onClick={() => void loadEmails(activeTab)}>
+            <button onClick={() => void loadEmails(activeTab, true)}>
               Try again
             </button>
           </div>
@@ -155,6 +190,7 @@ export default function DashboardPage() {
                 state: { email, accountEmail },
               })
             }
+            onCancel={handleCancelEmail}
           />
         )}
       </section>
